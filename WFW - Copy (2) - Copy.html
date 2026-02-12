@@ -1,0 +1,485 @@
+﻿ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Free World | Smart Waste Solutions</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        :root { 
+            --primary: #1e8449; 
+            --secondary: #27ae60; 
+            --accent: #f1c40f; 
+            --dark: #145a32; 
+            --light: #e8f5e9; 
+            --white: #ffffff; 
+            --gray: #f4f7f6;
+            --text-muted: #666;
+            --shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        }
+        
+        body { margin: 0; font-family: 'Segoe UI', Roboto, sans-serif; background: var(--gray); color: #333; line-height: 1.6; }
+        
+        /* --- NAVIGATION --- */
+        nav { 
+            background: var(--white); 
+            padding: 10px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+        }
+
+        .brand-logo { 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            color: var(--dark); 
+            text-decoration: none;
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            cursor: pointer;
+        }
+        .brand-logo span { color: var(--secondary); }
+
+        .nav-links { display: flex; gap: 25px; list-style: none; margin: 0; padding: 0; }
+        .nav-links li { cursor: pointer; font-weight: 600; color: #444; transition: 0.3s; }
+        .nav-links li:hover { color: var(--primary); }
+
+        /* --- HERO SECTION --- */
+        .hero-section {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover; background-position: center;
+            height: 450px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; color: white; border-radius: 0 0 50px 50px; padding: 0 20px;
+        }
+
+        /* --- REVIEWS --- */
+        .review-container {
+            display: flex; gap: 20px; overflow-x: auto; padding: 20px 0; scrollbar-width: none;
+        }
+        .review-card {
+            min-width: 300px; background: white; padding: 20px; border-radius: 15px;
+            box-shadow: var(--shadow); border-left: 5px solid var(--accent);
+        }
+        .stars { color: var(--accent); margin-bottom: 10px; }
+
+        /* --- LAYOUT & CARDS --- */
+        main { max-width: 1200px; margin: 0 auto; padding: 20px; min-height: 80vh; }
+        section { display: none; animation: fadeIn 0.4s ease-out; }
+        section.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .services-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 20px; margin-top: 20px;
+        }
+
+        .card { 
+            background: white; padding: 25px; border-radius: 15px; 
+            text-align: center; box-shadow: var(--shadow); 
+            transition: transform 0.3s; border-bottom: 4px solid transparent;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .card:hover { transform: translateY(-5px); border-bottom: 4px solid var(--secondary); }
+        .card i { color: var(--primary); margin-bottom: 15px; }
+        .price-tag { font-size: 1.4rem; color: var(--secondary); font-weight: 800; margin: 10px 0; }
+
+        .btn-primary { background: var(--secondary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; }
+        .btn-primary:hover { background: var(--dark); }
+
+        /* --- FOOTER --- */
+        footer {
+            background: var(--dark); color: white; padding: 40px 5% 20px; margin-top: 50px;
+        }
+        .footer-content {
+            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;
+        }
+        .footer-links { list-style: none; padding: 0; }
+        .footer-links li { margin-bottom: 10px; cursor: pointer; opacity: 0.8; transition: 0.3s; }
+        .footer-links li:hover { opacity: 1; text-decoration: underline; }
+        .copyright { text-align: center; padding-top: 20px; font-size: 0.8rem; opacity: 0.6; }
+
+        /* --- MAPS & FORMS --- */
+        #map, #contactMap { height: 350px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #ddd; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+
+        /* --- AI CHAT --- */
+        .ai-launcher { position: fixed; bottom: 20px; right: 20px; background: var(--dark); color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .ai-window { position: fixed; bottom: 85px; right: 20px; width: 320px; height: 450px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden; z-index: 1000; }
+        
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero-section { height: 350px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="brand-logo" onclick="app.router('home')">
+        <i class="fas fa-recycle"></i> WASTE FREE <span>WORLD</span>
+    </div>
+    <ul class="nav-links">
+        <li onclick="app.router('home')">Home</li>
+        <li onclick="app.router('services')">Services</li>
+        <li onclick="app.router('orders')">Account</li>
+        <li onclick="app.router('contact')">Contact</li>
+    </ul>
+    <button id="authBtn" class="btn-primary" style="width:auto;" onclick="app.router('login')">Login</button>
+</nav>
+
+<main>
+    <section id="home" class="active">
+        <div class="hero-section">
+            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Eco-Friendly Disposal For Nairobi</h1>
+            <p style="font-size: 1.1rem;">Smart, reliable, and sustainable waste management at your fingertips.</p>
+            <button class="btn-primary" style="width:220px; background:var(--accent); color:var(--dark); font-size: 1.1rem; margin-top: 20px;" onclick="app.router('services')">View All Services</button>
+        </div>
+        
+        <div style="margin-top:60px; text-align:center;">
+            <h2 style="color: var(--dark);">Why Choose Us?</h2>
+            <div class="services-grid">
+                <div class="card"><i class="fas fa-clock fa-2x"></i><h3>Timely Pickups</h3><p>We never miss a scheduled date.</p></div>
+                <div class="card"><i class="fas fa-leaf fa-2x"></i><h3>Eco-Friendly</h3><p>80% of waste collected is recycled.</p></div>
+                <div class="card"><i class="fas fa-mobile-alt fa-2x"></i><h3>Smart Tracking</h3><p>Real-time updates on your order.</p></div>
+            </div>
+        </div>
+
+        <div style="margin-top:60px;">
+            <h2 style="text-align:center; color: var(--dark);">What Our Clients Say</h2>
+            <div class="review-container">
+                <div class="review-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p>"Amazing service! They are always on time in Kilimani. Highly recommended."</p>
+                    <strong>- Jane W.</strong>
+                </div>
+                <div class="review-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p>"The recycling app is so easy to use. I love that I'm helping the planet."</p>
+                    <strong>- David K.</strong>
+                </div>
+                <div class="review-card">
+                    <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+                    <p>"Professional team and very clean trucks. Great for our office building."</p>
+                    <strong>- Sarah M.</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="services">
+        <h2 style="text-align:center; margin-bottom: 30px;">Our Service Packages</h2>
+        <div class="services-grid" id="main-services-list">
+            <div class="card">
+                <i class="fas fa-box-open fa-3x"></i>
+                <h3>Recycling Only</h3>
+                <p class="price-tag">KES 800 </p>
+                <p>Plastic, Glass, and Paper collection twice a month.</p>
+                <button class="btn-primary" onclick="app.startOrder('Recycling Only', 800)">Select</button>
+            </div>
+            <div class="card" style="border: 2px solid var(--secondary);">
+                <i class="fas fa-home fa-3x"></i>
+                <h3>Residential</h3>
+                <p class="price-tag">KES 2,000 </p>
+                <p>Weekly general waste & recycling. Perfect for families.</p>
+                <button class="btn-primary" onclick="app.startOrder('Residential Standard', 2000)">Select</button>
+            </div>
+            <div class="card">
+                <i class="fas fa-building fa-3x"></i>
+                <h3>Commercial</h3>
+                <p class="price-tag">KES 5,500 </p>
+                <p>Daily pickups for offices and small retail shops.</p>
+                <button class="btn-primary" onclick="app.startOrder('Commercial Basic', 5500)">Select</button>
+            </div>
+            <div class="card">
+                <i class="fas fa-industry fa-3x"></i>
+                <h3>Industrial</h3>
+                <p class="price-tag">KES 15,000 </p>
+                <p>Bulk waste disposal and hazardous material handling.</p>
+                <button class="btn-primary" onclick="app.startOrder('Industrial Bulk', 15000)">Select</button>
+            </div>
+
+            <div class="card"><i class="fas fa-laptop fa-3x"></i><h3>E-Waste Disposal</h3><p class="price-tag">KES 1,200 / trip</p><p>Safe disposal of old laptops, phones, and batteries.</p><button class="btn-primary" onclick="app.startOrder('E-Waste Disposal', 1200)">Select</button></div>
+            <div class="card"><i class="fas fa-briefcase-medical fa-3x"></i><h3>Medical Waste</h3><p class="price-tag">KES 8,500 </p><p>Biohazard collection for small clinics and pharmacies.</p><button class="btn-primary" onclick="app.startOrder('Medical Waste', 8500)">Select</button></div>
+            <div class="card"><i class="fas fa-seedling fa-3x"></i><h3>Garden & Green</h3><p class="price-tag">KES 1,500 </p><p>Collection of grass clippings, branches, and leaves.</p><button class="btn-primary" onclick="app.startOrder('Garden Waste', 1500)">Select</button></div>
+            <div class="card"><i class="fas fa-dumpster fa-3x"></i><h3>Construction Debris</h3><p class="price-tag">KES 18,000 / trip</p><p>Removal of concrete, bricks, and wood from sites.</p><button class="btn-primary" onclick="app.startOrder('Construction Debris', 18000)">Select</button></div>
+            <div class="card"><i class="fas fa-file-alt fa-3x"></i><h3>Confidential Shred</h3><p class="price-tag">KES 3,000 / bag</p><p>Secure on-site shredding of sensitive office documents.</p><button class="btn-primary" onclick="app.startOrder('Confidential Shred', 3000)">Select</button></div>
+            <div class="card"><i class="fas fa-glass-cheers fa-3x"></i><h3>Event Cleanup</h3><p class="price-tag">KES 12,000 / event</p><p>Full cleanup and waste removal for weddings/parties.</p><button class="btn-primary" onclick="app.startOrder('Event Cleanup', 12000)">Select</button></div>
+            <div class="card"><i class="fas fa-sink fa-3x"></i><h3>Grease Trap</h3><p class="price-tag">KES 7,500 </p><p>Specialized cleaning for restaurant kitchens.</p><button class="btn-primary" onclick="app.startOrder('Grease Trap Cleaning', 7500)">Select</button></div>
+            <div class="card"><i class="fas fa-plug fa-3x"></i><h3>White Goods</h3><p class="price-tag">KES 2,500 / unit</p><p>Disposal of old fridges, washers, and microwaves.</p><button class="btn-primary" onclick="app.startOrder('Appliance Disposal', 2500)">Select</button></div>
+            <div class="card"><i class="fas fa-apple-alt fa-3x"></i><h3>Organic/Compost</h3><p class="price-tag">KES 900 </p><p>Weekly food waste collection for organic composting.</p><button class="btn-primary" onclick="app.startOrder('Organic Compost', 900)">Select</button></div>
+            <div class="card"><i class="fas fa-couch fa-3x"></i><h3>Furniture Removal</h3><p class="price-tag">KES 4,000 / trip</p><p>Eco-friendly disposal of old sofas, beds, and tables.</p><button class="btn-primary" onclick="app.startOrder('Furniture Removal', 4000)">Select</button></div>
+            <div class="card"><i class="fas fa-biohazard fa-3x"></i><h3>Chemical Waste</h3><p class="price-tag">KES 25,000 </p><p>Safe transport of paints, oils, and industrial chemicals.</p><button class="btn-primary" onclick="app.startOrder('Chemical Waste', 25000)">Select</button></div>
+            <div class="card"><i class="fas fa-bottle-water fa-3x"></i><h3>Bulk Plastic</h3><p class="price-tag">KES 2,200 </p><p>High-volume plastic collection for manufacturers.</p><button class="btn-primary" onclick="app.startOrder('Bulk Plastic', 2200)">Select</button></div>
+            <div class="card"><i class="fas fa-wine-glass fa-3x"></i><h3>Glass Specialist</h3><p class="price-tag">KES 1,800 </p><p>Safe collection of bottles and industrial glass shards.</p><button class="btn-primary" onclick="app.startOrder('Glass Specialist', 1800)">Select</button></div>
+            <div class="card"><i class="fas fa-truck-droplet fa-3x"></i><h3>Septic Tank</h3><p class="price-tag">KES 15,000 / trip</p><p>Exhauster services for residential and commercial areas.</p><button class="btn-primary" onclick="app.startOrder('Septic Tank', 15000)">Select</button></div>
+            <div class="card"><i class="fas fa-restroom fa-3x"></i><h3>Sanitary Bins</h3><p class="price-tag">KES 3,500 </p><p>Professional feminine hygiene waste management.</p><button class="btn-primary" onclick="app.startOrder('Sanitary Bins', 3500)">Select</button></div>
+            <div class="card"><i class="fas fa-city fa-3x"></i><h3>Apartment Complex</h3><p class="price-tag">KES 35,000 </p><p>Full waste management for blocks with 20+ units.</p><button class="btn-primary" onclick="app.startOrder('Apartment Block', 35000)">Select</button></div>
+            <div class="card"><i class="fas fa-tshirt fa-3x"></i><h3>Textile/Clothing</h3><p class="price-tag">KES 600 / bag</p><p>Donation and recycling of old clothes and fabric.</p><button class="btn-primary" onclick="app.startOrder('Textile Recycle', 600)">Select</button></div>
+            <div class="card"><i class="fas fa-utensils fa-3x"></i><h3>Restaurant Pack</h3><p class="price-tag">KES 10,000 </p><p>Daily pickup of organic and non-recyclable food waste.</p><button class="btn-primary" onclick="app.startOrder('Restaurant Pack', 10000)">Select</button></div>
+            <div class="card"><i class="fas fa-school fa-3x"></i><h3>Education Waste</h3><p class="price-tag">KES 6,500 </p><p>Waste removal + educational recycling workshops.</p><button class="btn-primary" onclick="app.startOrder('School Program', 6500)">Select</button></div>
+            <div class="card"><i class="fas fa-music fa-3x"></i><h3>Festival Pro</h3><p class="price-tag">KES 50,000 event</p><p>End-to-end waste solutions for large outdoor events.</p><button class="btn-primary" onclick="app.startOrder('Festival Pro', 50000)">Select</button></div>
+        </div>
+    </section>
+
+    <section id="order-form">
+        <h2>Complete Your Booking</h2>
+        <div style="background:white; padding:25px; border-radius:15px; box-shadow:var(--shadow);">
+            <p>Selected Tier: <strong id="selectedServiceName" style="color:var(--primary)"></strong></p>
+            <form onsubmit="app.backend.placeOrder(event)">
+                <label><i class="fas fa-map-marker-alt"></i> Click your location on the map:</label>
+                <div id="map"></div>
+                <input type="text" id="coords" placeholder="Lat, Long (Pinned via map)" readonly required>
+                <input type="text" id="addr" placeholder="House / Office Name & Room Number" required>
+                <button type="submit" class="btn-primary">Confirm & Order via WhatsApp</button>
+            </form>
+        </div>
+    </section>
+
+    <section id="terms">
+        <h2>Terms & Conditions</h2>
+        <div style="background:white; padding:30px; border-radius:15px;">
+            <p>1. <strong>Service Agreement:</strong> By using Waste Free World, you agree to place waste in designated bins.</p>
+            <p>2. <strong>Payment:</strong> Monthly subscriptions are billed in advance via M-Pesa or Card.</p>
+            <p>3. <strong>Cancellation:</strong> You may cancel at any time with 7 days notice.</p>
+        </div>
+    </section>
+
+    <section id="privacy">
+        <h2>Privacy Policy</h2>
+        <div style="background:white; padding:30px; border-radius:15px;">
+            <p>Your data privacy is important. We only collect location and contact data to facilitate waste collection services.</p>
+            <p>We do not share your personal information with third-party advertisers.</p>
+        </div>
+    </section>
+
+    <section id="orders">
+        <h2>Order History</h2>
+        <div id="historyList">Login to view your history.</div>
+    </section>
+
+    <section id="contact">
+        <h2>Contact Support</h2>
+        <div class="services-grid">
+            <div style="background:white; padding:20px; border-radius:15px;">
+                <form onsubmit="app.contact.sendMessage(event)">
+                    <input type="text" id="cName" placeholder="Name" required>
+                    <textarea id="cMsg" placeholder="Message..." style="height:100px;"></textarea>
+                    <button type="submit" class="btn-primary">Send WhatsApp Message</button>
+                </form>
+            </div>
+            <div id="contactMap"></div>
+        </div>
+    </section>
+
+    <section id="login">
+        <div style="max-width:400px; margin:40px auto; background:white; padding:40px; border-radius:15px; text-align:center; box-shadow:var(--shadow);">
+            <i class="fas fa-user-circle fa-4x" style="color:#ddd; margin-bottom:15px;"></i>
+            <h2>Welcome Back</h2>
+            <input type="email" id="loginEmail" placeholder="Email Address">
+            <button class="btn-primary" onclick="app.auth.login()">Login</button>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="footer-content">
+        <div style="max-width:300px;">
+            <div class="brand-logo" style="color:white; margin-bottom:15px;">
+                <i class="fas fa-recycle"></i> WASTE FREE <span>WORLD</span>
+            </div>
+            <p style="font-size:0.9rem; opacity:0.8;">Making Nairobi cleaner and greener through smart technology and reliable waste management solutions.</p>
+        </div>
+        <div>
+            <h4>Quick Links</h4>
+            <ul class="footer-links">
+                <li onclick="app.router('home')">Home</li>
+                <li onclick="app.router('services')">Services</li>
+                <li onclick="app.router('contact')">Contact Us</li>
+            </ul>
+        </div>
+        <div>
+            <h4>Legal</h4>
+            <ul class="footer-links">
+                <li onclick="app.router('terms')">Terms & Conditions</li>
+                <li onclick="app.router('privacy')">Privacy Policy</li>
+            </ul>
+        </div>
+    </div>
+    <div class="copyright">
+        &copy; 2026 Waste Free World Nairobi. All Rights Reserved.
+    </div>
+</footer>
+
+<div class="ai-launcher" onclick="app.ai.toggle()"><i class="fas fa-robot"></i></div>
+<div class="ai-window" id="aiWindow">
+    <div style="background:var(--dark); color:white; padding:15px; display:flex; justify-content:space-between;">
+        <span>EcoBot Assistant</span>
+        <span onclick="app.ai.toggle()" style="cursor:pointer;">×</span>
+    </div>
+    <div id="aiMsgs" style="flex:1; padding:15px; overflow-y:auto; background:#f9f9f9; display:flex; flex-direction:column; gap:10px;">
+        <div style="background:#eee; padding:8px; border-radius:8px; font-size:0.9rem;">Hi! I know all about our 24 services. Ask me about a price or service!</div>
+    </div>
+    <div style="padding:10px; border-top:1px solid #eee; display:flex;">
+        <input type="text" id="aiIn" placeholder="e.g. How much is e-waste?" style="margin:0; flex:1; border-radius:5px 0 0 5px;">
+        <button onclick="app.ai.ask()" style="background:var(--primary); color:white; border:none; padding:0 15px; border-radius:0 5px 5px 0;">Go</button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const app = {
+    userMap: null, shopMap: null, userMarker: null,
+
+    router: (id) => {
+        document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'order-form') app.initOrderMap();
+        if(id === 'contact') app.initContactMap();
+        if(id === 'orders') app.renderHistory();
+        window.scrollTo(0,0);
+    },
+
+    initOrderMap: () => {
+        setTimeout(() => {
+            if (app.userMap) return;
+            app.userMap = L.map('map').setView([-1.286389, 36.817223], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(app.userMap);
+            app.userMap.on('click', (e) => {
+                const { lat, lng } = e.latlng;
+                if (app.userMarker) app.userMap.removeLayer(app.userMarker);
+                app.userMarker = L.marker([lat, lng]).addTo(app.userMap);
+                document.getElementById('coords').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            });
+        }, 300);
+    },
+
+    initContactMap: () => {
+        setTimeout(() => {
+            if (app.shopMap) return;
+            app.shopMap = L.map('contactMap').setView([-1.2841, 36.8248], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(app.shopMap);
+            L.marker([-1.2841, 36.8248]).addTo(app.shopMap).bindPopup("<b>Main Office</b><br>Nairobi CBD");
+        }, 300);
+    },
+
+    auth: {
+        login: () => {
+            const email = document.getElementById('loginEmail').value;
+            if(email) { localStorage.setItem('user', email); location.reload(); }
+        },
+        logout: () => { localStorage.removeItem('user'); location.reload(); }
+    },
+
+    startOrder: (type, price) => {
+        if(!localStorage.getItem('user')) return app.router('login');
+        document.getElementById('selectedServiceName').innerText = `${type} (KES ${price})`;
+        app.router('order-form');
+    },
+
+    backend: {
+        placeOrder: (e) => {
+            e.preventDefault();
+            const user = localStorage.getItem('user');
+            const order = {
+                id: "#" + Math.floor(Math.random()*9000),
+                type: document.getElementById('selectedServiceName').innerText,
+                coords: document.getElementById('coords').value,
+                addr: document.getElementById('addr').value,
+                user: user,
+                date: new Date().toLocaleDateString()
+            };
+            let history = JSON.parse(localStorage.getItem('wfw_history') || '[]');
+            history.push(order);
+            localStorage.setItem('wfw_history', JSON.stringify(history));
+            
+            const msg = `Order: ${order.type}%0ALocation: ${order.coords}%0AAddress: ${order.addr}`;
+            window.open(`https://wa.me/254700000000?text=${msg}`, '_blank');
+            app.router('orders');
+        }
+    },
+
+    renderHistory: () => {
+        const user = localStorage.getItem('user');
+        const box = document.getElementById('historyList');
+        if(!user) { box.innerHTML = "Please login to see history."; return; }
+        let history = JSON.parse(localStorage.getItem('wfw_history') || '[]');
+        let myOrders = history.filter(o => o.user === user);
+        box.innerHTML = myOrders.length ? myOrders.reverse().map(o => `
+            <div class="card" style="text-align:left; margin-bottom:10px;">
+                <strong>${o.id} - ${o.type}</strong><br>
+                <small>Date: ${o.date} | Address: ${o.addr}</small>
+            </div>
+        `).join('') : "No orders yet.";
+    },
+
+    contact: {
+        sendMessage: (e) => {
+            e.preventDefault();
+            const n = document.getElementById('cName').value;
+            const m = document.getElementById('cMsg').value;
+            window.open(`https://wa.me/254700000000?text=Hello, I am ${n}. ${m}`, '_blank');
+        }
+    },
+
+    ai: {
+        toggle: () => {
+            const w = document.getElementById('aiWindow');
+            w.style.display = (w.style.display === 'flex') ? 'none' : 'flex';
+        },
+        ask: () => {
+            const i = document.getElementById('aiIn');
+            const box = document.getElementById('aiMsgs');
+            const query = i.value.toLowerCase();
+            if(!query) return;
+
+            // Log user message
+            box.innerHTML += `<div style="align-self:flex-end; background:var(--secondary); color:white; padding:8px; border-radius:8px; font-size:0.9rem;">${i.value}</div>`;
+            
+            // Dynamic Bot Logic: Scans the cards for info!
+            let reply = "I'm not sure about that service. Try asking about 'Recycling', 'E-waste', or 'Furniture removal'.";
+            
+            const cards = document.querySelectorAll('#main-services-list .card');
+            cards.forEach(card => {
+                const title = card.querySelector('h3').innerText.toLowerCase();
+                const price = card.querySelector('.price-tag').innerText;
+                if(query.includes(title.split(' ')[0])) { // Simple keyword match
+                    reply = `Yes! Our <strong>${card.querySelector('h3').innerText}</strong> service costs <strong>${price}</strong>.`;
+                }
+            });
+
+            if(query.includes('price') || query.includes('how much')) {
+                 if (reply.includes("not sure")) reply = "Our prices range from KES 600 for Textile recycling to KES 50,000 for Festivals. Which one interests you?";
+            }
+            
+            setTimeout(() => {
+                box.innerHTML += `<div style="align-self:flex-start; background:#eee; padding:8px; border-radius:8px; font-size:0.9rem;">${reply}</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 600);
+            i.value = "";
+        }
+    }
+};
+
+window.onload = () => {
+    const user = localStorage.getItem('user');
+    if(user) {
+        const btn = document.getElementById('authBtn');
+        btn.innerText = `Logout (${user.split('@')[0]})`;
+        btn.style.background = "#c0392b";
+        btn.onclick = app.auth.logout;
+    }
+};
+</script>
+</body>
+</html>
